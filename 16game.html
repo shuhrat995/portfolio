@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15 Puzzle Game</title>
+    <style>
+
+        @media only screen and (max-width: 768px) {
+            button {
+                position: static !important;
+                display:block;
+                margin-top: 70px  !important;
+                margin-left: auto;
+                margin-right: auto;
+                width: 50%;
+            }
+        }
+
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        button {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: orange;
+            color: #fff;
+        }
+
+        .container {
+            display: inline-grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 5px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .tile {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #000;
+            cursor: pointer;
+            background: lightblue;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .empty {
+            background: #fff;
+            border: none;
+            cursor: default;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>15 Puzzle Game</h1>
+    <div class="container" id="puzzle"></div>
+    <button onclick="shuffleTiles()">Shuffle</button>
+    <script>
+        const puzzle = document.getElementById("puzzle");
+        let tiles = [];
+
+        function createTiles() {
+            let numbers = [...Array(15).keys()].map(n => n + 1).concat(null);
+            puzzle.innerHTML = "";
+            numbers.forEach(num => {
+                const tile = document.createElement("div");
+                tile.className = num ? "tile" : "tile empty";
+                tile.textContent = num || "";
+                tile.addEventListener("click", () => moveTile(tile));
+                tiles.push(tile);
+                puzzle.appendChild(tile);
+            });
+        }
+
+        function shuffleTiles() {
+            let numbers = [...Array(15).keys()].map(n => n + 1).concat(null);
+
+            do { 
+                numbers.sort(() => Math.random() - 0.5); 
+            } while (!isSolvable(numbers));
+
+            tiles.forEach((tile, i) => {
+                tile.textContent = numbers[i] || "";
+                tile.className = numbers[i] ? "tile" : "tile empty";
+            });
+        }
+
+        function moveTile(tile) {
+            let emptyTile = document.querySelector(".empty");
+            let tileIndex = tiles.indexOf(tile);
+            let emptyIndex = tiles.indexOf(emptyTile);
+            let validMoves = [emptyIndex - 1, emptyIndex + 1, emptyIndex - 4, emptyIndex + 4];
+            
+            if (validMoves.includes(tileIndex)) {
+                let tileRect = tile.getBoundingClientRect();
+                let emptyRect = emptyTile.getBoundingClientRect();
+
+                tile.style.transition = "transform 0.3s ease";
+                tile.style.transform = `translate(${emptyRect.left - tileRect.left}px, ${emptyRect.top - tileRect.top}px)`;
+
+                setTimeout(() => {
+                    tile.style.transition = "none";
+                    tile.style.transform = "";
+                    [tile.textContent, emptyTile.textContent] = [emptyTile.textContent, tile.textContent];
+                    [tile.className, emptyTile.className] = [emptyTile.className, tile.className];
+                    checkWin();
+                }, 300);
+            }
+        }
+
+        function checkWin() {
+            let winState = [...Array(15).keys()].map(n => (n + 1).toString()).concat("");
+            if (tiles.map(tile => tile.textContent).join() === winState.join()) {
+                setTimeout(() => alert("Tabriklaymiz! Siz yutdingiz!"), 100);
+            }
+        }
+
+        function isSolvable(numbers) {
+            let inversions = numbers.filter(n => n).map((n, i, arr) => arr.slice(i + 1).filter(m => m && m < n).length).reduce((a, b) => a + b, 0);
+            return inversions % 2 === 0;
+        }
+
+        createTiles();
+    </script>
+</body>
+
+</html>
